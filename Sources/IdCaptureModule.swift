@@ -126,14 +126,6 @@ public class IdCaptureModule: NSObject, FrameworkModule {
     public func resetMode() {
         idCapture?.reset()
     }
-    
-    public func setModeEnabled(enabled: Bool) {
-        idCapture?.isEnabled = enabled
-    }
-    
-    public func isModeEnabled() -> Bool {
-        return idCapture?.isEnabled == true
-    }
 }
 
 extension IdCaptureModule: IdCaptureDeserializerDelegate {
