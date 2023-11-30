@@ -9,13 +9,16 @@ import ScanditIdCapture
 
 class IdCaptureDefaults: DefaultsEncodable {
     private let recommendedCameraSettings: CameraSettingsDefaults
+    private let idCaptureFeedback: IdCaptureFeedback
     private let overlayDefaults: IdCaptureOverlayDefaults
     private let settingsDefaults: IdCaptureSettingsDefaults
 
-    init(recommendedCameraSettings: CameraSettingsDefaults,
+    init(idCaptureFeedback: IdCaptureFeedback,
+         recommendedCameraSettings: CameraSettingsDefaults,
          overlayDefaults: IdCaptureOverlayDefaults,
          settingsDefaults: IdCaptureSettingsDefaults) {
         self.recommendedCameraSettings = recommendedCameraSettings
+        self.idCaptureFeedback = idCaptureFeedback
         self.overlayDefaults = overlayDefaults
         self.settingsDefaults = settingsDefaults
     }
@@ -23,6 +26,7 @@ class IdCaptureDefaults: DefaultsEncodable {
     func toEncodable() -> [String: Any?] {
         [
             "RecommendedCameraSettings": recommendedCameraSettings.toEncodable(),
+            "IdCaptureFeedback": idCaptureFeedback.jsonString,
             "IdCaptureOverlay": overlayDefaults.toEncodable(),
             "IdCaptureSettings": settingsDefaults.toEncodable()
         ]
@@ -30,7 +34,7 @@ class IdCaptureDefaults: DefaultsEncodable {
 
     static var shared: IdCaptureDefaults = {
         IdCaptureDefaults(
-            recommendedCameraSettings:
+            idCaptureFeedback: .default, recommendedCameraSettings:
                 CameraSettingsDefaults(
                     cameraSettings: IdCapture.recommendedCameraSettings
                 ),
