@@ -130,7 +130,7 @@ public class IdCaptureModule: NSObject, FrameworkModule {
     }
     
     public func setModeEnabled(enabled: Bool) {
-        modeEnabled = true
+        modeEnabled = enabled
         idCapture?.isEnabled = enabled
     }
     
@@ -147,6 +147,10 @@ extension IdCaptureModule: IdCaptureDeserializerDelegate {
     public func idCaptureDeserializer(_ deserializer: IdCaptureDeserializer,
                                       didFinishDeserializingMode mode: IdCapture,
                                       from JSONValue: JSONValue) {
+        if JSONValue.containsKey("enabled") {
+            modeEnabled = JSONValue.bool(forKey: "enabled")
+        }
+        
         mode.isEnabled = modeEnabled
         idCapture = mode
     }
