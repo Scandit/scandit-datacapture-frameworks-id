@@ -19,6 +19,8 @@ public class IdCaptureModule: NSObject, FrameworkModule {
     private var context: DataCaptureContext?
     
     private var verifier: AamvaBarcodeVerifier?
+    
+    private var modeEnabled = true
 
     private var idCapture: IdCapture? {
         willSet {
@@ -126,6 +128,15 @@ public class IdCaptureModule: NSObject, FrameworkModule {
     public func resetMode() {
         idCapture?.reset()
     }
+    
+    public func setModeEnabled(enabled: Bool) {
+        modeEnabled = enabled
+        idCapture?.isEnabled = enabled
+    }
+    
+    public func isModeEnabled() -> Bool {
+        return idCapture?.isEnabled == true
+    }
 }
 
 extension IdCaptureModule: IdCaptureDeserializerDelegate {
@@ -137,8 +148,10 @@ extension IdCaptureModule: IdCaptureDeserializerDelegate {
                                       didFinishDeserializingMode mode: IdCapture,
                                       from JSONValue: JSONValue) {
         if JSONValue.containsKey("enabled") {
-            mode.isEnabled = JSONValue.bool(forKey: "enabled")
+            modeEnabled = JSONValue.bool(forKey: "enabled")
         }
+        
+        mode.isEnabled = modeEnabled
         idCapture = mode
     }
 
