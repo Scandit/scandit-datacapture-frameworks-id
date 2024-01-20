@@ -128,7 +128,6 @@ public class FrameworksIdCaptureListener: NSObject, IdCaptureListener {
             "session": session.jsonString
         ]
 
-        let result = event.emit(on: emitter, payload: payload) ?? false
-        mode.isEnabled = result
+        event.emit(on: emitter, payload: payload)
     }
 }
