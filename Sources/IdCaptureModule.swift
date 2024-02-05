@@ -118,14 +118,22 @@ public class IdCaptureModule: NSObject, FrameworkModule {
     }
 
     public func verifyCapturedIdAamvaViz(jsonString: String, result: FrameworksResult) {
+        guard let context = context else {
+            result.reject(error: ScanditFrameworksCoreError.nilDataCaptureContext)
+            return
+        }
         let capturedId = CapturedId(jsonString: jsonString)
-        let verificationResult = AAMVAVizBarcodeComparisonVerifier().verify(capturedId)
+        let verificationResult = AAMVAVizBarcodeComparisonVerifier(context: context).verify(capturedId)
         result.success(result: verificationResult.jsonString)
     }
 
     public func verifyCaptureIdMrzViz(jsonString: String, result: FrameworksResult) {
+        guard let context = context else {
+            result.reject(error: ScanditFrameworksCoreError.nilDataCaptureContext)
+            return
+        }
         let capturedId = CapturedId(jsonString: jsonString)
-        let verificationResult = VizMrzComparisonVerifier().verify(capturedId)
+        let verificationResult = VizMrzComparisonVerifier(context: context).verify(capturedId)
         result.success(result: verificationResult.jsonString)
     }
 
