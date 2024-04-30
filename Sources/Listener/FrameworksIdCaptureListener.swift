@@ -26,7 +26,7 @@ fileprivate extension Emitter {
     }
 }
 
-open class FrameworksIdCaptureListener: NSObject, IdCaptureListener {
+public class FrameworksIdCaptureListener: NSObject, IdCaptureListener {
     private static let asyncTimeoutInterval: TimeInterval = 600 // 10 mins
     private static let defaultTimeoutInterval: TimeInterval = 2
     private let emitter: Emitter
@@ -45,29 +45,29 @@ open class FrameworksIdCaptureListener: NSObject, IdCaptureListener {
     private let timeoutEvent = EventWithResult<Bool>(event: Event(.timeout),
                                                      timeout: defaultTimeoutInterval)
 
-    public func finishDidCaptureId(enabled: Bool) {
+    func finishDidCaptureId(enabled: Bool) {
         idCapturedEvent.unlock(value: enabled)
     }
 
-    public func finishDidRejectId(enabled: Bool) {
+    func finishDidRejectId(enabled: Bool) {
         idRejectedEvent.unlock(value: enabled)
     }
 
-    public func finishDidLocalizeId(enabled: Bool) {
+    func finishDidLocalizeId(enabled: Bool) {
         idLocalizedEvent.unlock(value: enabled)
     }
 
-    public func finishTimeout(enabled: Bool) {
+    func finishTimeout(enabled: Bool) {
         timeoutEvent.unlock(value: enabled)
     }
 
-    public func enableAsync() {
+    func enableAsync() {
         [idCapturedEvent, idLocalizedEvent, idRejectedEvent, timeoutEvent].forEach {
             $0.timeout = Self.asyncTimeoutInterval
         }
     }
 
-    public func disableAsync() {
+    func disableAsync() {
         [idCapturedEvent, idLocalizedEvent, idRejectedEvent, timeoutEvent].forEach {
             $0.timeout = Self.defaultTimeoutInterval
         }
@@ -101,13 +101,13 @@ open class FrameworksIdCaptureListener: NSObject, IdCaptureListener {
         emit(timeoutEvent, data: frameData, session: session, mode: idCapture)
     }
 
-    public func enable() {
+    func enable() {
         if !isEnabled.value {
             isEnabled.value = true
         }
     }
 
-    public func disable() {
+    func disable() {
         if isEnabled.value {
             isEnabled.value = false
         }
