@@ -16,8 +16,7 @@ struct IdCaptureSettingsDefaults: DefaultsEncodable {
 
     func toEncodable() -> [String: Any?] {
         [
-            "anonymizationMode": settings.anonymizationMode.jsonString,
-            "rejectVoidedIds": settings.rejectVoidedIds
+            "anonymizationMode": settings.anonymizationMode.jsonString
         ]
     }
 }
