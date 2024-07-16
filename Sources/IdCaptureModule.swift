@@ -12,7 +12,7 @@ enum ScanditFrameworksIdError: Error {
     case unknownCloudVerificationError
 }
 
-public class IdCaptureModule: NSObject, FrameworkModule {
+open class IdCaptureModule: NSObject, FrameworkModule {
     private let idCaptureListener: FrameworksIdCaptureListener
     private let idCaptureDeserializer: IdCaptureDeserializer
 
