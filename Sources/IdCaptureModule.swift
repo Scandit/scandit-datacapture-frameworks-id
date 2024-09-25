@@ -21,10 +21,8 @@ open class IdCaptureModule: NSObject, FrameworkModule {
     private var verifier: AamvaBarcodeVerifier?
 
     private var modeEnabled = true
-
-    private var dataCaptureView: DataCaptureView?
-
-    private var idCaptureOverlay: IdCaptureOverlay?
+    
+    private var idCaptureFeedback: IdCaptureFeedback?
 
     private var idCapture: IdCapture? {
         willSet {
@@ -178,7 +176,7 @@ open class IdCaptureModule: NSObject, FrameworkModule {
     }
 
     public func updateOverlay(overlayJson: String, result: FrameworksResult) {
-        guard let overlay = self.idCaptureOverlay else {
+        guard let overlay: IdCaptureOverlay = DataCaptureViewHandler.shared.findFirstOverlayOfType() else {
             result.success(result: nil)
             return
         }
@@ -187,6 +185,22 @@ open class IdCaptureModule: NSObject, FrameworkModule {
             try idCaptureDeserializer.update(overlay, fromJSONString: overlayJson)
             result.success(result: nil)
         } catch {
+            result.reject(error: error)
+        }
+    }
+    
+    public func updateFeedback(feedbackJson: String, result: FrameworksResult) {
+        do {
+            idCaptureFeedback = try IdCaptureFeedback(fromJSON: JSONValue(string: feedbackJson))
+            
+            // in case we don't have a mode yet, it will return success and cache the new
+            // feedback to be applied after the creation of the view.
+             if let mode = idCapture, let feedback = idCaptureFeedback {
+                 mode.feedback = feedback
+                 idCaptureFeedback = nil
+            }
+            result.success()
+        } catch let error {
             result.reject(error: error)
         }
     }
@@ -237,7 +251,6 @@ extension IdCaptureModule: IdCaptureDeserializerDelegate {
             overlay.textHintPosition = textHintPosition
         }
         overlay.showTextHints = JSONValue.bool(forKey: "showTextHints", default: true)
-        self.idCaptureOverlay = overlay
     }
 }
 
@@ -249,18 +262,6 @@ extension IdCaptureModule: DeserializationLifeCycleObserver {
 
     public func didDisposeDataCaptureContext() {
         self.context = nil
-        self.dataCaptureView = nil
-
-    }
-
-    public func dataCaptureView(deserialized view: DataCaptureView?) {
-        self.dataCaptureView = view
-        
-        guard let dcView = view, let overlay = idCaptureOverlay else {
-            return
-        }
-        
-        dcView.addOverlay(overlay)
     }
 
     public func dataCaptureContext(addMode modeJson: String) throws {
@@ -274,6 +275,14 @@ extension IdCaptureModule: DeserializationLifeCycleObserver {
 
         let mode = try idCaptureDeserializer.mode(fromJSONString: modeJson, with: dcContext)
         dcContext.addMode(mode)
+        
+        // update feedback in case the update call did run before the creation of the mode
+        if let feedback = idCaptureFeedback {
+            dispatchMain { [weak self] in
+                mode.feedback = feedback
+                self?.idCaptureFeedback = nil
+            }
+        }
     }
 
     public func dataCaptureContext(removeMode modeJson: String) {
@@ -294,10 +303,9 @@ extension IdCaptureModule: DeserializationLifeCycleObserver {
 
     public func dataCaptureContextAllModeRemoved() {
         self.idCapture = nil
-        removeCurrentOverlay()
     }
 
-    public func dataCaptureView(addOverlay overlayJson: String) throws {
+    public func dataCaptureView(addOverlay overlayJson: String, to view: DataCaptureView) throws {
         if  JSONValue(string: overlayJson).string(forKey: "type") != "idCapture" {
             return
         }
@@ -308,29 +316,7 @@ extension IdCaptureModule: DeserializationLifeCycleObserver {
 
         try dispatchMainSync {
             let overlay = try idCaptureDeserializer.overlay(fromJSONString: overlayJson, withMode: mode)
-            self.dataCaptureView?.addOverlay(overlay)
+            DataCaptureViewHandler.shared.addOverlayToView(view, overlay: overlay)
         }
-    }
-
-    public func dataCaptureView(removeOverlay overlayJson: String) {
-        if  JSONValue(string: overlayJson).string(forKey: "type") != "idCapture" {
-            return
-        }
-
-        removeCurrentOverlay()
-    }
-
-    public func dataCaptureViewRemoveAllOverlays() {
-        removeCurrentOverlay()
-    }
-
-    private func removeCurrentOverlay() {
-        guard let overlay = self.idCaptureOverlay else {
-            return
-        }
-        dispatchMainSync {
-            self.dataCaptureView?.removeOverlay(overlay)
-        }
-        self.idCaptureOverlay = nil
     }
 }
