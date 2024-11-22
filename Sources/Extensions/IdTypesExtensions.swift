@@ -17,6 +17,8 @@ extension RejectionReason {
             return "invalidFormat"
         case .documentVoided:
             return "documentVoided"
+        case .singleImageNotRecognized:
+            return "singleImageNotRecognized"
         }
     }
 }
