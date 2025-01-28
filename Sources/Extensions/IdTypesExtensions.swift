@@ -19,6 +19,18 @@ extension RejectionReason {
             return "documentVoided"
         case .singleImageNotRecognized:
             return "singleImageNotRecognized"
+        case .documentExpired:
+            return "documentExpired"
+        case .documentExpiresSoon:
+            return "documentExpiresSoon"
+        case .notRealIdCompliant:
+            return "notRealIdCompliant"
+        case .holderUnderage:
+            return "holderUnderage"
+        case .forgedAamvaBarcode:
+            return "forgedAamvaBarcode"
+        case .inconsistentData:
+            return "inconsistentData"
         }
     }
 }
