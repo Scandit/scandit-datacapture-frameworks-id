@@ -188,7 +188,7 @@ open class IdCaptureModule: NSObject, FrameworkModule {
         idCapture = nil
         
         if let overlay: IdCaptureOverlay = captureViewHandler.findFirstOverlayOfType() {
-            captureViewHandler.removeOverlayFromTopmostView(overlay)
+            captureViewHandler.removeOverlayFromTopmostView(overlay: overlay)
         }
     }
 }
@@ -291,7 +291,7 @@ extension IdCaptureModule: DeserializationLifeCycleObserver {
 
         try dispatchMainSync {
             let overlay = try idCaptureDeserializer.overlay(fromJSONString: overlayJson, withMode: mode)
-            captureViewHandler.addOverlayToView(view: view, overlay: overlay)
+            captureViewHandler.addOverlayToView(view, overlay: overlay)
         }
     }
 }
