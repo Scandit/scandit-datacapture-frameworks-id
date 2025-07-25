@@ -15,13 +15,13 @@ enum ScanditFrameworksIdError: Error {
 open class IdCaptureModule: NSObject, FrameworkModule {
     private let idCaptureListener: FrameworksIdCaptureListener
     private let idCaptureDeserializer: IdCaptureDeserializer
-    private let captureContext = DefaultFrameworksCaptureContext.shared
-    private let captureViewHandler = DataCaptureViewHandler.shared
+
+    private var context: DataCaptureContext?
 
     private var verifier: AamvaBarcodeVerifier?
 
     private var modeEnabled = true
-
+    
     private var idCaptureFeedback: IdCaptureFeedback?
 
     private var idCapture: IdCapture? {
@@ -79,8 +79,16 @@ open class IdCaptureModule: NSObject, FrameworkModule {
         idCaptureListener.finishDidRejectId(enabled: enabled)
     }
 
+    public func finishDidLocalizeId(enabled: Bool) {
+        idCaptureListener.finishDidLocalizeId(enabled: enabled)
+    }
+
+    public func finishTimeout(enabled: Bool) {
+        idCaptureListener.finishTimeout(enabled: enabled)
+    }
+
     public func createAamvaBarcodeVerifier(result: FrameworksResult) {
-        guard let context = captureContext.context else {
+        guard let context = context else {
             result.reject(error: ScanditFrameworksCoreError.nilDataCaptureContext)
             return
         }
@@ -105,6 +113,26 @@ open class IdCaptureModule: NSObject, FrameworkModule {
                 result.reject(error: ScanditFrameworksIdError.unknownCloudVerificationError)
             }
         }
+    }
+
+    public func verifyCapturedIdAamvaViz(jsonString: String, result: FrameworksResult) {
+        guard let context = context else {
+            result.reject(error: ScanditFrameworksCoreError.nilDataCaptureContext)
+            return
+        }
+        let capturedId = CapturedId(jsonString: jsonString)
+        let verificationResult = AAMVAVizBarcodeComparisonVerifier(context: context).verify(capturedId)
+        result.success(result: verificationResult.jsonString)
+    }
+
+    public func verifyCaptureIdMrzViz(jsonString: String, result: FrameworksResult) {
+        guard let context = context else {
+            result.reject(error: ScanditFrameworksCoreError.nilDataCaptureContext)
+            return
+        }
+        let capturedId = CapturedId(jsonString: jsonString)
+        let verificationResult = VizMrzComparisonVerifier(context: context).verify(capturedId)
+        result.success(result: verificationResult.jsonString)
     }
 
     public func resetMode() {
@@ -148,30 +176,23 @@ open class IdCaptureModule: NSObject, FrameworkModule {
     }
 
     public func updateOverlay(overlayJson: String, result: FrameworksResult) {
-        let block = { [weak self] in
-            guard let self = self else {
-                result.reject(error: ScanditFrameworksCoreError.nilSelf)
-                return
-            }
-            guard let overlay: IdCaptureOverlay = self.captureViewHandler.findFirstOverlayOfType() else {
-                result.success(result: nil)
-                return
-            }
-            
-            do {
-                try self.idCaptureDeserializer.update(overlay, fromJSONString: overlayJson)
-                result.success(result: nil)
-            } catch {
-                result.reject(error: error)
-            }
+        guard let overlay: IdCaptureOverlay = DataCaptureViewHandler.shared.findFirstOverlayOfType() else {
+            result.success(result: nil)
+            return
         }
-        dispatchMain(block)
+                
+        do {
+            try idCaptureDeserializer.update(overlay, fromJSONString: overlayJson)
+            result.success(result: nil)
+        } catch {
+            result.reject(error: error)
+        }
     }
-
+    
     public func updateFeedback(feedbackJson: String, result: FrameworksResult) {
         do {
             idCaptureFeedback = try IdCaptureFeedback(fromJSON: JSONValue(string: feedbackJson))
-
+            
             // in case we don't have a mode yet, it will return success and cache the new
             // feedback to be applied after the creation of the view.
              if let mode = idCapture, let feedback = idCaptureFeedback {
@@ -181,14 +202,6 @@ open class IdCaptureModule: NSObject, FrameworkModule {
             result.success()
         } catch let error {
             result.reject(error: error)
-        }
-    }
-    
-    private func onModeRemovedFromContext() {
-        idCapture = nil
-        
-        if let overlay: IdCaptureOverlay = captureViewHandler.findFirstOverlayOfType() {
-            captureViewHandler.removeOverlayFromTopmostView(overlay)
         }
     }
 }
@@ -204,7 +217,7 @@ extension IdCaptureModule: IdCaptureDeserializerDelegate {
         if JSONValue.containsKey("enabled") {
             modeEnabled = JSONValue.bool(forKey: "enabled")
         }
-
+        
         mode.isEnabled = modeEnabled
         idCapture = mode
     }
@@ -243,18 +256,26 @@ extension IdCaptureModule: IdCaptureDeserializerDelegate {
 
 
 extension IdCaptureModule: DeserializationLifeCycleObserver {
+    public func dataCaptureContext(deserialized context: DataCaptureContext?) {
+        self.context = context
+    }
+
+    public func didDisposeDataCaptureContext() {
+        self.context = nil
+    }
+
     public func dataCaptureContext(addMode modeJson: String) throws {
         if JSONValue(string: modeJson).string(forKey: "type") != "idCapture" {
             return
         }
 
-        guard let dcContext = self.captureContext.context else {
+        guard let dcContext = self.context else {
             return
         }
 
         let mode = try idCaptureDeserializer.mode(fromJSONString: modeJson, with: dcContext)
-        captureContext.addMode(mode: mode)
-
+        dcContext.addMode(mode)
+        
         // update feedback in case the update call did run before the creation of the mode
         if let feedback = idCaptureFeedback {
             dispatchMain { [weak self] in
@@ -269,15 +290,19 @@ extension IdCaptureModule: DeserializationLifeCycleObserver {
             return
         }
 
+        guard let dcContext = self.context else {
+            return
+        }
+
         guard let mode = self.idCapture else {
             return
         }
-        captureContext.removeMode(mode: mode)
-        self.onModeRemovedFromContext()
+        dcContext.removeMode(mode)
+        self.idCapture = nil
     }
 
     public func dataCaptureContextAllModeRemoved() {
-        self.onModeRemovedFromContext()
+        self.idCapture = nil
     }
 
     public func dataCaptureView(addOverlay overlayJson: String, to view: DataCaptureView) throws {
@@ -291,7 +316,7 @@ extension IdCaptureModule: DeserializationLifeCycleObserver {
 
         try dispatchMainSync {
             let overlay = try idCaptureDeserializer.overlay(fromJSONString: overlayJson, withMode: mode)
-            captureViewHandler.addOverlayToView(view: view, overlay: overlay)
+            DataCaptureViewHandler.shared.addOverlayToView(view, overlay: overlay)
         }
     }
 }
