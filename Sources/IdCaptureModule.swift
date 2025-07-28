@@ -186,10 +186,6 @@ open class IdCaptureModule: NSObject, FrameworkModule {
     
     private func onModeRemovedFromContext() {
         idCapture = nil
-        
-        if let overlay: IdCaptureOverlay = captureViewHandler.findFirstOverlayOfType() {
-            captureViewHandler.removeOverlayFromTopmostView(overlay: overlay)
-        }
     }
 }
 
@@ -280,7 +276,7 @@ extension IdCaptureModule: DeserializationLifeCycleObserver {
         self.onModeRemovedFromContext()
     }
 
-    public func dataCaptureView(addOverlay overlayJson: String, to view: DataCaptureView) throws {
+    public func dataCaptureView(addOverlay overlayJson: String, to view: FrameworksDataCaptureView) throws {
         if  JSONValue(string: overlayJson).string(forKey: "type") != "idCapture" {
             return
         }
@@ -291,7 +287,7 @@ extension IdCaptureModule: DeserializationLifeCycleObserver {
 
         try dispatchMainSync {
             let overlay = try idCaptureDeserializer.overlay(fromJSONString: overlayJson, withMode: mode)
-            captureViewHandler.addOverlayToView(view, overlay: overlay)
+            view.addOverlay(overlay)
         }
     }
 }
