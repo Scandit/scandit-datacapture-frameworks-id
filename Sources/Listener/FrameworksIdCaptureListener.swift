@@ -33,7 +33,7 @@ open class FrameworksIdCaptureListener: NSObject, IdCaptureListener {
         self.emitter = emitter
     }
 
-    private var isEnabled = AtomicValue<Bool>()
+    private var isEnabled = AtomicBool()
     private let idCapturedEvent = EventWithResult<Bool>(event: Event(.didCaptureId),
                                                         timeout: defaultTimeoutInterval)
     private let idRejectedEvent = EventWithResult<Bool>(event: Event(.didRejectId),
