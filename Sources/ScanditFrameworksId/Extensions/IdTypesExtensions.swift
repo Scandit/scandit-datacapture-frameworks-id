@@ -31,6 +31,10 @@ extension RejectionReason {
             return "forgedAamvaBarcode"
         case .inconsistentData:
             return "inconsistentData"
+        case .bluetoothCommunicationError:
+            return "bluetoothCommunicationError"
+        case .bluetoothUnavailable:
+            return "bluetoothUnavailable"
         }
     }
 }
