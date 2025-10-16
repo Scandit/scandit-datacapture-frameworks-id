@@ -5,7 +5,4 @@ target 'Example' do
 
   pod 'scandit-datacapture-frameworks-id', :path => '../'
 
-  # REPLACE-BEGIN
-  pod 'scandit-datacapture-frameworks-core', :path => '../../scandit-datacapture-frameworks-core'
-  # REPLACE-END
 end
