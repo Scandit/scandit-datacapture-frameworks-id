@@ -7,30 +7,6 @@
 import ScanditFrameworksCore
 import ScanditIdCapture
 
-// Todo: Check this latest if we can use the native extensions that are deprecated
-extension IdLayoutStyle {
-    var stringValue: String {
-        switch self {
-        case .rounded:
-            return "rounded"
-        case .square:
-            return "square"
-        }
-    }
-}
-
-// Todo: Check this latest if we can use the native extensions that are deprecated
-extension IdLayoutLineStyle {
-    var stringValue: String {
-        switch self {
-        case .bold:
-            return "bold"
-        case .light:
-            return "light"
-        }
-    }
-}
-
 struct IdCaptureOverlayDefaults: DefaultsEncodable {
     private let capturedBrush: EncodableBrush
     private let localizedBrush: EncodableBrush
@@ -48,9 +24,7 @@ struct IdCaptureOverlayDefaults: DefaultsEncodable {
         [
             "DefaultCapturedBrush": capturedBrush.toEncodable(),
             "DefaultLocalizedBrush": localizedBrush.toEncodable(),
-            "DefaultRejectedBrush": rejectedBrush.toEncodable(),
-            "defaultIdLayoutStyle": IdCaptureOverlay.defaultIdLayoutStyle.stringValue,
-            "defaultIdLayoutLineStyle": IdCaptureOverlay.defaultIdLayoutLineStyle.stringValue,
+            "DefaultRejectedBrush": rejectedBrush.toEncodable()
         ]
     }
 
