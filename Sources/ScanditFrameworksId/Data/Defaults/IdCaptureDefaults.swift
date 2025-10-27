@@ -28,7 +28,9 @@ class IdCaptureDefaults: DefaultsEncodable {
             "RecommendedCameraSettings": recommendedCameraSettings.toEncodable(),
             "IdCaptureFeedback": idCaptureFeedback.jsonString,
             "IdCaptureOverlay": overlayDefaults.toEncodable(),
-            "IdCaptureSettings": settingsDefaults.toEncodable()
+            "IdCaptureSettings": settingsDefaults.toEncodable(),
+            "defaultSuccessSound": IdCaptureFeedback.defaultSuccessSound.jsonString,
+            "defaultFailureSound": IdCaptureFeedback.defaultFailureSound.jsonString,
         ]
     }
 
