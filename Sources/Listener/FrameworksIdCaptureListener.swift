@@ -9,7 +9,9 @@ import ScanditIdCapture
 
 public enum FrameworksIdCaptureEvent: String, CaseIterable {
     case didCaptureId = "IdCaptureListener.didCaptureId"
+    case didLocalizeId = "IdCaptureListener.didLocalizeId"
     case didRejectId = "IdCaptureListener.didRejectId"
+    case timeout = "IdCaptureListener.didTimeout"
 }
 
 fileprivate extension Event {
@@ -24,28 +26,6 @@ fileprivate extension Emitter {
     }
 }
 
-fileprivate extension IdImages {
-    func toJson() -> [String: Any?] {
-        return [
-            "front": [
-                "face": self.face?.toFileString(),
-                "frame": self.frame(for: .front)?.toFileString(),
-                "croppedDocument": self.croppedDocument(for: .front)?.toFileString()
-            ],
-            "back": [
-                "croppedDocument": self.croppedDocument(for: .back)?.toFileString(),
-                "frame": self.frame(for: .back)?.toFileString()
-            ]
-        ]
-    }
-}
-
-fileprivate extension UIImage {
-    func toFileString() -> String? {
-        return LastFrameData.shared.saveImageToFile(image: self)
-    }
-}
-
 open class FrameworksIdCaptureListener: NSObject, IdCaptureListener {
     private static let asyncTimeoutInterval: TimeInterval = 600 // 10 mins
     private static let defaultTimeoutInterval: TimeInterval = 2
@@ -55,11 +35,15 @@ open class FrameworksIdCaptureListener: NSObject, IdCaptureListener {
         self.emitter = emitter
     }
 
-    private var isEnabled = AtomicValue<Bool>()
+    private var isEnabled = AtomicBool()
     private let idCapturedEvent = EventWithResult<Bool>(event: Event(.didCaptureId),
+                                                        timeout: defaultTimeoutInterval)
+    private let idLocalizedEvent = EventWithResult<Bool>(event: Event(.didLocalizeId),
                                                         timeout: defaultTimeoutInterval)
     private let idRejectedEvent = EventWithResult<Bool>(event: Event(.didRejectId),
                                                         timeout: defaultTimeoutInterval)
+    private let timeoutEvent = EventWithResult<Bool>(event: Event(.timeout),
+                                                     timeout: defaultTimeoutInterval)
 
     public func finishDidCaptureId(enabled: Bool) {
         idCapturedEvent.unlock(value: enabled)
@@ -69,55 +53,52 @@ open class FrameworksIdCaptureListener: NSObject, IdCaptureListener {
         idRejectedEvent.unlock(value: enabled)
     }
 
+    public func finishDidLocalizeId(enabled: Bool) {
+        idLocalizedEvent.unlock(value: enabled)
+    }
+
+    public func finishTimeout(enabled: Bool) {
+        timeoutEvent.unlock(value: enabled)
+    }
+
     public func enableAsync() {
-        [idCapturedEvent, idRejectedEvent].forEach {
+        [idCapturedEvent, idLocalizedEvent, idRejectedEvent, timeoutEvent].forEach {
             $0.timeout = Self.asyncTimeoutInterval
         }
-        enable()
     }
 
     public func disableAsync() {
-        disable()
-        [idCapturedEvent, idRejectedEvent].forEach {
+        [idCapturedEvent, idLocalizedEvent, idRejectedEvent, timeoutEvent].forEach {
             $0.timeout = Self.defaultTimeoutInterval
         }
     }
 
-    public func idCapture(_ idCapture: IdCapture, didCapture capturedId: CapturedId) {
+    public func idCapture(_ idCapture: IdCapture,
+                          didCaptureIn session: IdCaptureSession,
+                          frameData: FrameData) {
         guard emitter.hasListener(for: .didCaptureId) else { return }
-        guard isEnabled.value else { return }
-
-        let payload: [String: Any?]
-        if LastFrameData.shared.isFileSystemCacheEnabled {
-            payload = [
-                "id": capturedId.jsonStringWithoutImages,
-                "imageInfo": capturedId.images.toJson()
-            ]
-        } else {
-             payload = [
-                "id":  capturedId.jsonString
-            ]
-        }
-
-        idCapturedEvent.emit(on: emitter, payload: payload)
+        emit(idCapturedEvent, data: frameData, session: session, mode: idCapture)
     }
 
-    public func idCapture(_ idCapture: IdCapture, didReject capturedId: CapturedId?, reason rejectionReason: RejectionReason) {
+    public func idCapture(_ idCapture: IdCapture,
+                          didLocalizeIn session: IdCaptureSession,
+                          frameData: FrameData) {
+        guard emitter.hasListener(for: .didLocalizeId) else { return }
+        emit(idLocalizedEvent, data: frameData, session: session, mode: idCapture)
+    }
+
+    public func idCapture(_ idCapture: IdCapture,
+                          didRejectIn session: IdCaptureSession,
+                          frameData: FrameData) {
         guard emitter.hasListener(for: .didRejectId) else { return }
-        guard isEnabled.value else { return }
+        emit(idRejectedEvent, data: frameData, session: session, mode: idCapture)
+    }
 
-        var payload: [String: Any?] = [
-            "rejectionReason": rejectionReason.jsonString
-        ]
-
-        if LastFrameData.shared.isFileSystemCacheEnabled {
-            payload["id"] = capturedId?.jsonStringWithoutImages
-            payload["imageInfo"] = capturedId?.images.toJson()
-        } else {
-            payload["id"] = capturedId?.jsonString
-        }
-
-        idRejectedEvent.emit(on: emitter, payload: payload)
+    public func idCapture(_ idCapture: IdCapture,
+                          didTimeoutIn session:
+                          IdCaptureSession, frameData: FrameData) {
+        guard emitter.hasListener(for: .timeout) else { return }
+        emit(timeoutEvent, data: frameData, session: session, mode: idCapture)
     }
 
     public func enable() {
@@ -132,7 +113,21 @@ open class FrameworksIdCaptureListener: NSObject, IdCaptureListener {
         }
         idCapturedEvent.reset()
         idRejectedEvent.reset()
+        idLocalizedEvent.reset()
+        timeoutEvent.reset()
+    }
+
+    private func emit(_ event: EventWithResult<Bool>,
+                      data: FrameData,
+                      session: IdCaptureSession,
+                      mode: IdCapture) {
+        guard isEnabled.value else { return }
+        defer { LastFrameData.shared.frameData = nil }
+        LastFrameData.shared.frameData = data
+        let payload = [
+            "session": session.jsonString
+        ]
+
+        event.emit(on: emitter, payload: payload)
     }
 }
-
-

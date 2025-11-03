@@ -17,14 +17,7 @@ struct IdCaptureSettingsDefaults: DefaultsEncodable {
     func toEncodable() -> [String: Any?] {
         [
             "anonymizationMode": settings.anonymizationMode.jsonString,
-            "rejectVoidedIds": settings.rejectVoidedIds,
-            "decodeBackOfEuropeDrivingLicense": settings.decodeBackOfEuropeanDrivingLicense,
-            "rejectExpiredIds": settings.rejectExpiredIds,
-            "rejectIdsExpiringIn": settings.rejectIdsExpiringIn?.json,
-            "rejectNotRealIdCompliant": settings.rejectNotRealIdCompliant,
-            "rejectForgedAamvaBarcodes": settings.rejectForgedAamvaBarcodes,
-            "rejectInconsistentData": settings.rejectInconsistentData,
-            "rejectHolderBelowAge": settings.rejectHolderBelowAge,
+            "rejectVoidedIds": settings.rejectVoidedIds
         ]
     }
 }
@@ -41,16 +34,5 @@ fileprivate extension IdAnonymizationMode {
         case .fieldsAndImages:
             return "fieldsAndImages"
         }
-    }
-}
-
-
-fileprivate extension Duration {
-    var json: [String: Any] {
-      return [
-        "years": self.years,
-        "months": self.months,
-        "days": self.days
-      ]
     }
 }
