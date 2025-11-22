@@ -18,8 +18,6 @@ open class IdCaptureModule: NSObject, FrameworkModule {
     private let captureContext = DefaultFrameworksCaptureContext.shared
     private let captureViewHandler = DataCaptureViewHandler.shared
 
-    // TODO SDC-27552 Adapt samples & public api with deprecated AamvaBarcodeVerifier API
-    @available(*, deprecated)
     private var verifier: AamvaBarcodeVerifier?
 
     private var modeEnabled = true
@@ -81,8 +79,6 @@ open class IdCaptureModule: NSObject, FrameworkModule {
         idCaptureListener.finishDidRejectId(enabled: enabled)
     }
 
-    // TODO SDC-27552 Adapt samples & public api with deprecated AamvaBarcodeVerifier API
-    @available(*, deprecated)
     public func createAamvaBarcodeVerifier(result: FrameworksResult) {
         guard let context = captureContext.context else {
             result.reject(error: ScanditFrameworksCoreError.nilDataCaptureContext)
@@ -92,8 +88,6 @@ open class IdCaptureModule: NSObject, FrameworkModule {
         result.success(result: nil)
     }
 
-    // TODO SDC-27552 Adapt samples & public api with deprecated AamvaBarcodeVerifier API
-    @available(*, deprecated)
     public func verifyCapturedIdWithCloud(jsonString: String, result: FrameworksResult) {
         guard let verifier = verifier else {
             result.reject(error: ScanditFrameworksIdError.nilVerifier)
@@ -163,7 +157,7 @@ open class IdCaptureModule: NSObject, FrameworkModule {
                 result.success(result: nil)
                 return
             }
-
+            
             do {
                 try self.idCaptureDeserializer.update(overlay, fromJSONString: overlayJson)
                 result.success(result: nil)
@@ -189,9 +183,13 @@ open class IdCaptureModule: NSObject, FrameworkModule {
             result.reject(error: error)
         }
     }
-
+    
     private func onModeRemovedFromContext() {
         idCapture = nil
+        
+        if let overlay: IdCaptureOverlay = captureViewHandler.findFirstOverlayOfType() {
+            captureViewHandler.removeOverlayFromTopmostView(overlay)
+        }
     }
 }
 
@@ -282,7 +280,7 @@ extension IdCaptureModule: DeserializationLifeCycleObserver {
         self.onModeRemovedFromContext()
     }
 
-    public func dataCaptureView(addOverlay overlayJson: String, to view: FrameworksDataCaptureView) throws {
+    public func dataCaptureView(addOverlay overlayJson: String, to view: DataCaptureView) throws {
         if  JSONValue(string: overlayJson).string(forKey: "type") != "idCapture" {
             return
         }
@@ -293,7 +291,7 @@ extension IdCaptureModule: DeserializationLifeCycleObserver {
 
         try dispatchMainSync {
             let overlay = try idCaptureDeserializer.overlay(fromJSONString: overlayJson, withMode: mode)
-            view.addOverlay(overlay)
+            captureViewHandler.addOverlayToView(view: view, overlay: overlay)
         }
     }
 }
