@@ -51,22 +51,19 @@ public struct IdCaptureOverlayCreationData {
 
         let showTextHints = json.bool(forKey: "showTextHints", default: true)
         var frontSideTextHint: String? = nil
-        if json.containsKey("frontSideTextHint") {
+        if (json.containsKey("frontSideTextHint")) {
             frontSideTextHint = json.string(forKey: "frontSideTextHint", default: "")
         }
-
+        
         var backSideTextHint: String? = nil
-        if json.containsKey("backSideTextHint") {
+        if (json.containsKey("backSideTextHint")) {
             backSideTextHint = json.string(forKey: "backSideTextHint", default: "")
         }
-
+        
         var textHintPosition: TextHintPosition? = nil
-        if json.containsKey("textHintPosition") {
+        if json.containsKey("textHintPosition")  {
             var parsingTextPosition = TextHintPosition.aboveViewfinder
-            SDCTextHintPositionFromJSONString(
-                json.string(forKey: "textHintPosition", default: ""),
-                &parsingTextPosition
-            )
+            SDCTextHintPositionFromJSONString(json.string(forKey: "textHintPosition", default: ""), &parsingTextPosition)
             textHintPosition = parsingTextPosition
         }
 

@@ -26,23 +26,23 @@ fileprivate extension Emitter {
 
 fileprivate extension IdImages {
     func toJson() -> [String: Any?] {
-        [
+        return [
             "front": [
                 "face": self.face?.toFileString(),
                 "frame": self.frame(for: .front)?.toFileString(),
-                "croppedDocument": self.croppedDocument(for: .front)?.toFileString(),
+                "croppedDocument": self.croppedDocument(for: .front)?.toFileString()
             ],
             "back": [
                 "croppedDocument": self.croppedDocument(for: .back)?.toFileString(),
-                "frame": self.frame(for: .back)?.toFileString(),
-            ],
+                "frame": self.frame(for: .back)?.toFileString()
+            ]
         ]
     }
 }
 
 fileprivate extension UIImage {
     func toFileString() -> String? {
-        LastFrameData.shared.saveImageToFile(image: self)
+        return LastFrameData.shared.saveImageToFile(image: self)
     }
 }
 
@@ -67,9 +67,9 @@ open class FrameworksIdCaptureListener: NSObject, IdCaptureListener {
         idRejectedEvent.unlock(value: enabled)
     }
 
+
     public func idCapture(_ idCapture: IdCapture, didCapture capturedId: CapturedId) {
-        guard emitter.hasModeSpecificListenersForEvent(modeId, for: FrameworksIdCaptureEvent.didCaptureId.rawValue)
-        else { return }
+        guard emitter.hasModeSpecificListenersForEvent(modeId, for: FrameworksIdCaptureEvent.didCaptureId.rawValue) else { return }
 
         var payload: [String: Any?]
         if LastFrameData.shared.isFileSystemCacheEnabled {
@@ -79,8 +79,8 @@ open class FrameworksIdCaptureListener: NSObject, IdCaptureListener {
                 "frontReviewImage": capturedId.verificationResult.dataConsistency?.frontReviewImage?.toFileString(),
             ]
         } else {
-            payload = [
-                "id": capturedId.jsonString
+             payload = [
+                "id":  capturedId.jsonString
             ]
         }
         payload["modeId"] = modeId
@@ -88,13 +88,8 @@ open class FrameworksIdCaptureListener: NSObject, IdCaptureListener {
         idCapturedEvent.emit(on: emitter, payload: payload)
     }
 
-    public func idCapture(
-        _ idCapture: IdCapture,
-        didReject capturedId: CapturedId?,
-        reason rejectionReason: RejectionReason
-    ) {
-        guard emitter.hasModeSpecificListenersForEvent(modeId, for: FrameworksIdCaptureEvent.didRejectId.rawValue)
-        else { return }
+    public func idCapture(_ idCapture: IdCapture, didReject capturedId: CapturedId?, reason rejectionReason: RejectionReason) {
+        guard emitter.hasModeSpecificListenersForEvent(modeId, for: FrameworksIdCaptureEvent.didRejectId.rawValue) else { return }
 
         var payload: [String: Any?] = [
             "rejectionReason": rejectionReason.jsonString
@@ -103,8 +98,7 @@ open class FrameworksIdCaptureListener: NSObject, IdCaptureListener {
         if LastFrameData.shared.isFileSystemCacheEnabled {
             payload["id"] = capturedId?.jsonStringWithoutImages
             payload["imageInfo"] = capturedId?.images.toJson()
-            payload["frontReviewImage"] = capturedId?.verificationResult.dataConsistency?.frontReviewImage?
-                .toFileString()
+            payload["frontReviewImage"] = capturedId?.verificationResult.dataConsistency?.frontReviewImage?.toFileString()
         } else {
             payload["id"] = capturedId?.jsonString
         }
@@ -113,8 +107,11 @@ open class FrameworksIdCaptureListener: NSObject, IdCaptureListener {
         idRejectedEvent.emit(on: emitter, payload: payload)
     }
 
+
     public func reset() {
         idCapturedEvent.reset()
         idRejectedEvent.reset()
     }
 }
+
+

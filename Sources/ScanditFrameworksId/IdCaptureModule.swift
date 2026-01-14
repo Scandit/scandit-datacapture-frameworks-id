@@ -20,10 +20,8 @@ open class IdCaptureModule: BasicFrameworkModule<FrameworksIdCaptureMode> {
 
     private var idCaptureFeedback: IdCaptureFeedback?
 
-    public init(
-        emitter: Emitter,
-        deserializer: IdCaptureDeserializer = IdCaptureDeserializer()
-    ) {
+    public init(emitter: Emitter,
+                deserializer: IdCaptureDeserializer = IdCaptureDeserializer()) {
         self.emitter = emitter
         self.idCaptureDeserializer = deserializer
         super.init()
@@ -71,11 +69,11 @@ open class IdCaptureModule: BasicFrameworkModule<FrameworksIdCaptureMode> {
     }
 
     public func isModeEnabled(modeId: Int) -> Bool {
-        getModeFromCache(modeId)?.isEnabled == true
+        return getModeFromCache(modeId)?.isEnabled == true
     }
 
     public func isTopmostModeEnabled() -> Bool {
-        getTopmostMode()?.isEnabled == true
+        return getTopmostMode()?.isEnabled == true
     }
 
     public func setTopmostModeEnabled(enabled: Bool) {
@@ -228,7 +226,7 @@ open class IdCaptureModule: BasicFrameworkModule<FrameworksIdCaptureMode> {
             }
 
         case "updateIdCaptureOverlay":
-            if let overlayJson: String = method.argument(key: "overlayJson") {
+            if let overlayJson: String = method.arguments() {
                 updateOverlay(overlayJson: overlayJson, result: result)
             } else {
                 result.reject(code: "-1", message: "Invalid overlay JSON argument", details: nil)
@@ -251,6 +249,7 @@ open class IdCaptureModule: BasicFrameworkModule<FrameworksIdCaptureMode> {
         return true
     }
 }
+
 
 extension IdCaptureModule: DeserializationLifeCycleObserver {
     public func dataCaptureContext(addMode modeJson: String) throws {
@@ -315,12 +314,11 @@ extension IdCaptureModule: DeserializationLifeCycleObserver {
         }
 
         let parentId = view.parentId ?? -1
-        let mode: FrameworksIdCaptureMode? =
-            if parentId != -1 {
-                getModeFromCacheByParent(parentId) as? FrameworksIdCaptureMode
-            } else {
-                getModeFromCache(creationParams.modeId)
-            }
+        let mode: FrameworksIdCaptureMode? = if parentId != -1 {
+            getModeFromCacheByParent(parentId) as? FrameworksIdCaptureMode
+        } else {
+            getModeFromCache(creationParams.modeId)
+        }
 
         if mode == nil {
             if parentId != -1 {
@@ -335,34 +333,27 @@ extension IdCaptureModule: DeserializationLifeCycleObserver {
             return
         }
 
-        dispatchMain { [weak self] in
+        dispatchMain {[weak self] in
             guard let self = self else {
                 return
             }
             do {
-                guard let idCaptureMode = mode?.mode else {
-                    Log.error("ID Capture mode is not available for overlay creation")
-                    return
-                }
-                let overlay = try self.idCaptureDeserializer.overlay(
-                    fromJSONString: creationParams.overlayJson,
-                    withMode: idCaptureMode
-                )
-
+                let overlay = try self.idCaptureDeserializer.overlay(fromJSONString: creationParams.overlayJson, withMode: mode!.mode)
+                
                 if let frontSideTextHint = creationParams.frontSideTextHint {
                     overlay.setFrontSideTextHint(frontSideTextHint)
                 }
-
+                
                 if let backSideTextHint = creationParams.backSideTextHint {
                     overlay.setBackSideTextHint(backSideTextHint)
                 }
-
+                
                 if let textHintPosition = creationParams.textHintPosition {
                     overlay.textHintPosition = textHintPosition
                 }
-
+                
                 overlay.showTextHints = creationParams.showTextHints
-
+                
                 view.addOverlay(overlay)
             } catch {
                 Log.error("Unable to add the IdCaptureOverlay.", error: error)

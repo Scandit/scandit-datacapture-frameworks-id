@@ -44,12 +44,13 @@ fileprivate extension IdAnonymizationMode {
     }
 }
 
+
 fileprivate extension Duration {
     var json: [String: Any] {
-        [
-            "years": self.years,
-            "months": self.months,
-            "days": self.days,
-        ]
+      return [
+        "years": self.years,
+        "months": self.months,
+        "days": self.days
+      ]
     }
 }

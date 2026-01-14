@@ -36,11 +36,9 @@ struct IdCaptureOverlayDefaults: DefaultsEncodable {
     private let localizedBrush: EncodableBrush
     private let rejectedBrush: EncodableBrush
 
-    init(
-        capturedBrush: EncodableBrush,
-        localizedBrush: EncodableBrush,
-        rejectedBrush: EncodableBrush
-    ) {
+    init(capturedBrush: EncodableBrush,
+         localizedBrush: EncodableBrush,
+         rejectedBrush: EncodableBrush) {
         self.capturedBrush = capturedBrush
         self.localizedBrush = localizedBrush
         self.rejectedBrush = rejectedBrush

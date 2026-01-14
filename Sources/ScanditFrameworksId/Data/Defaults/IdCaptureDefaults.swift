@@ -13,12 +13,10 @@ class IdCaptureDefaults: DefaultsEncodable {
     private let overlayDefaults: IdCaptureOverlayDefaults
     private let settingsDefaults: IdCaptureSettingsDefaults
 
-    init(
-        idCaptureFeedback: IdCaptureFeedback,
-        recommendedCameraSettings: CameraSettingsDefaults,
-        overlayDefaults: IdCaptureOverlayDefaults,
-        settingsDefaults: IdCaptureSettingsDefaults
-    ) {
+    init(idCaptureFeedback: IdCaptureFeedback,
+         recommendedCameraSettings: CameraSettingsDefaults,
+         overlayDefaults: IdCaptureOverlayDefaults,
+         settingsDefaults: IdCaptureSettingsDefaults) {
         self.recommendedCameraSettings = recommendedCameraSettings
         self.idCaptureFeedback = idCaptureFeedback
         self.overlayDefaults = overlayDefaults
@@ -38,8 +36,7 @@ class IdCaptureDefaults: DefaultsEncodable {
 
     static var shared: IdCaptureDefaults = {
         IdCaptureDefaults(
-            idCaptureFeedback: .default,
-            recommendedCameraSettings:
+            idCaptureFeedback: .default, recommendedCameraSettings:
                 CameraSettingsDefaults(
                     cameraSettings: IdCapture.recommendedCameraSettings
                 ),

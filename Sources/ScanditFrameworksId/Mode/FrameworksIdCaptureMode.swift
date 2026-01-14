@@ -4,31 +4,31 @@
  * Copyright (C) 2025- Scandit AG. All rights reserved.
  */
 
-import ScanditFrameworksCore
 import ScanditIdCapture
+import ScanditFrameworksCore
 
 public class FrameworksIdCaptureMode: FrameworksBaseMode {
     private let listener: FrameworksIdCaptureListener
     private let captureContext: DefaultFrameworksCaptureContext
     private let deserializer: IdCaptureDeserializer
 
-    private var internalModeId: Int = -1
-    private var internalParentId: Int? = nil
+    private var _modeId: Int = -1
+    private var _parentId: Int? = nil
     private var isListenerAdded: Bool = false
 
     public var modeId: Int {
-        internalModeId
+        return _modeId
     }
 
     public var parentId: Int? {
-        internalParentId
+        return _parentId
     }
 
     public private(set) var mode: IdCapture!
 
     public var isEnabled: Bool {
         get {
-            mode.isEnabled
+            return mode.isEnabled
         }
         set {
             mode.isEnabled = newValue
@@ -50,8 +50,8 @@ public class FrameworksIdCaptureMode: FrameworksBaseMode {
         creationData: IdCaptureModeCreationData
     ) throws {
         mode = try deserializer.mode(fromJSONString: creationData.modeJson, with: dataCaptureContext)
-        internalModeId = creationData.modeId
-        internalParentId = creationData.parentId
+        _modeId = creationData.modeId
+        _parentId = creationData.parentId
 
         captureContext.addMode(mode: mode)
 

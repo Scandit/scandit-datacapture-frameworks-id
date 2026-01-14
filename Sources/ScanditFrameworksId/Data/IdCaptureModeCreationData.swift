@@ -4,8 +4,8 @@
  * Copyright (C) 2025- Scandit AG. All rights reserved.
  */
 
-import ScanditCaptureCore
 import ScanditFrameworksCore
+import ScanditCaptureCore
 
 public struct IdCaptureModeCreationData {
     let modeJson: String
