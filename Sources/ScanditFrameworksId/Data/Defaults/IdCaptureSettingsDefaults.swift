@@ -25,6 +25,7 @@ struct IdCaptureSettingsDefaults: DefaultsEncodable {
             "rejectForgedAamvaBarcodes": settings.rejectForgedAamvaBarcodes,
             "rejectInconsistentData": settings.rejectInconsistentData,
             "rejectHolderBelowAge": settings.rejectHolderBelowAge,
+            "anonymizeDefaultFields": settings.anonymizeDefaultFields,
         ]
     }
 }

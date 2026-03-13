@@ -44,30 +44,38 @@ open class IdCaptureModule: BasicFrameworkModule<FrameworksIdCaptureMode> {
         super.didStop()
     }
 
-    public let defaults: DefaultsEncodable = IdCaptureDefaults.shared
+    public override func getDefaults() -> [String: Any?] {
+        IdCaptureDefaults.shared.toEncodable()
+    }
 
-    public func addListener(modeId: Int) {
+    public func addIdCaptureListener(modeId: Int, result: FrameworksResult) {
         getModeFromCache(modeId)?.addListener()
+        result.successAndKeepCallback(result: nil)
     }
 
-    public func removeListener(modeId: Int) {
+    public func removeIdCaptureListener(modeId: Int, result: FrameworksResult) {
         getModeFromCache(modeId)?.removeListener()
+        result.success()
     }
 
-    public func finishDidCaptureId(modeId: Int, enabled: Bool) {
+    public func finishDidCaptureCallback(modeId: Int, enabled: Bool, result: FrameworksResult) {
         getModeFromCache(modeId)?.finishDidCaptureId(enabled: enabled)
+        result.success()
     }
 
-    public func finishDidRejectId(modeId: Int, enabled: Bool) {
+    public func finishDidRejectCallback(modeId: Int, enabled: Bool, result: FrameworksResult) {
         getModeFromCache(modeId)?.finishDidRejectId(enabled: enabled)
+        result.success()
     }
 
-    public func resetMode(modeId: Int) {
+    public func resetIdCaptureMode(modeId: Int, result: FrameworksResult) {
         getModeFromCache(modeId)?.reset()
+        result.success()
     }
 
-    public func setModeEnabled(modeId: Int, enabled: Bool) {
+    public func setModeEnabledState(modeId: Int, enabled: Bool, result: FrameworksResult) {
         getModeFromCache(modeId)?.setModeEnabled(enabled: enabled)
+        result.success()
     }
 
     public func isModeEnabled(modeId: Int) -> Bool {
@@ -82,7 +90,7 @@ open class IdCaptureModule: BasicFrameworkModule<FrameworksIdCaptureMode> {
         getTopmostMode()?.setModeEnabled(enabled: enabled)
     }
 
-    public func updateModeFromJson(modeId: Int, modeJson: String, result: FrameworksResult) {
+    public func updateIdCaptureMode(modeJson: String, modeId: Int, result: FrameworksResult) {
         guard let mode = getModeFromCache(modeId) else {
             result.success(result: nil)
             return
@@ -95,20 +103,20 @@ open class IdCaptureModule: BasicFrameworkModule<FrameworksIdCaptureMode> {
         }
     }
 
-    public func applyModeSettings(modeId: Int, modeSettingsJson: String, result: FrameworksResult) {
+    public func applyIdCaptureModeSettings(settingsJson: String, modeId: Int, result: FrameworksResult) {
         guard let mode = getModeFromCache(modeId) else {
             result.success(result: nil)
             return
         }
         do {
-            try mode.applySettings(modeSettingsJson: modeSettingsJson)
+            try mode.applySettings(modeSettingsJson: settingsJson)
             result.success(result: nil)
         } catch {
             result.reject(error: error)
         }
     }
 
-    public func updateOverlay(overlayJson: String, result: FrameworksResult) {
+    public func updateIdCaptureOverlay(overlayJson: String, result: FrameworksResult) {
         let block = { [weak self] in
             guard let self = self else {
                 result.reject(error: ScanditFrameworksCoreError.nilSelf)
@@ -129,7 +137,7 @@ open class IdCaptureModule: BasicFrameworkModule<FrameworksIdCaptureMode> {
         dispatchMain(block)
     }
 
-    public func updateFeedback(modeId: Int, feedbackJson: String, result: FrameworksResult) {
+    public func updateFeedback(feedbackJson: String, modeId: Int, result: FrameworksResult) {
         guard let mode = getModeFromCache(modeId) else {
             result.success(result: nil)
             return
@@ -144,111 +152,8 @@ open class IdCaptureModule: BasicFrameworkModule<FrameworksIdCaptureMode> {
         }
     }
 
-    // MARK: - Execute Method
-    public func execute(method: FrameworksMethodCall, result: FrameworksResult) -> Bool {
-        switch method.method {
-        case "getDefaults":
-            let jsonString = defaults.stringValue
-            result.success(result: jsonString)
-
-        case "addIdCaptureListener":
-            guard let modeId: Int = method.argument(key: "modeId") else {
-                result.reject(code: "-1", message: "Invalid modeId argument", details: nil)
-                return true
-            }
-            addListener(modeId: modeId)
-            result.success(result: nil)
-
-        case "removeIdCaptureListener":
-            guard let modeId: Int = method.argument(key: "modeId") else {
-                result.reject(code: "-1", message: "Invalid modeId argument", details: nil)
-                return true
-            }
-            removeListener(modeId: modeId)
-            result.success(result: nil)
-
-        case "finishDidCaptureId":
-            guard let modeId: Int = method.argument(key: "modeId") else {
-                result.reject(code: "-1", message: "Invalid modeId argument", details: nil)
-                return true
-            }
-            let enabled: Bool = method.argument(key: "enabled") ?? false
-            finishDidCaptureId(modeId: modeId, enabled: enabled)
-            result.success(result: nil)
-
-        case "finishDidRejectId":
-            guard let modeId: Int = method.argument(key: "modeId") else {
-                result.reject(code: "-1", message: "Invalid modeId argument", details: nil)
-                return true
-            }
-            let enabled: Bool = method.argument(key: "enabled") ?? false
-            finishDidRejectId(modeId: modeId, enabled: enabled)
-            result.success(result: nil)
-
-        case "reset":
-            guard let modeId: Int = method.argument(key: "modeId") else {
-                result.reject(code: "-1", message: "Invalid modeId argument", details: nil)
-                return true
-            }
-            resetMode(modeId: modeId)
-            result.success(result: nil)
-
-        case "getLastFrameData":
-            result.success(result: nil)
-
-        case "setModeEnabledState":
-            guard let modeId: Int = method.argument(key: "modeId") else {
-                result.reject(code: "-1", message: "Invalid modeId argument", details: nil)
-                return true
-            }
-            let enabled: Bool = method.argument(key: "enabled") ?? false
-            setModeEnabled(modeId: modeId, enabled: enabled)
-            result.success(result: nil)
-
-        case "updateIdCaptureMode":
-            guard let modeId: Int = method.argument(key: "modeId") else {
-                result.reject(code: "-1", message: "Invalid modeId argument", details: nil)
-                return true
-            }
-            if let modeJson: String = method.argument(key: "modeJson") {
-                updateModeFromJson(modeId: modeId, modeJson: modeJson, result: result)
-            } else {
-                result.reject(code: "-1", message: "Invalid mode JSON argument", details: nil)
-            }
-
-        case "applyIdCaptureModeSettings":
-            guard let modeId: Int = method.argument(key: "modeId") else {
-                result.reject(code: "-1", message: "Invalid modeId argument", details: nil)
-                return true
-            }
-            if let modeSettingsJson: String = method.argument(key: "settingsJson") {
-                applyModeSettings(modeId: modeId, modeSettingsJson: modeSettingsJson, result: result)
-            } else {
-                result.reject(code: "-1", message: "Invalid mode settings JSON argument", details: nil)
-            }
-
-        case "updateIdCaptureOverlay":
-            if let overlayJson: String = method.argument(key: "overlayJson") {
-                updateOverlay(overlayJson: overlayJson, result: result)
-            } else {
-                result.reject(code: "-1", message: "Invalid overlay JSON argument", details: nil)
-            }
-
-        case "updateFeedback":
-            guard let modeId: Int = method.argument(key: "modeId") else {
-                result.reject(code: "-1", message: "Invalid modeId argument", details: nil)
-                return true
-            }
-            if let feedbackJson: String = method.argument(key: "feedbackJson") {
-                updateFeedback(modeId: modeId, feedbackJson: feedbackJson, result: result)
-            } else {
-                result.reject(code: "-1", message: "Invalid feedback JSON argument", details: nil)
-            }
-
-        default:
-            return false
-        }
-        return true
+    open override func createCommand(_ method: any FrameworksMethodCall) -> (any BaseCommand)? {
+        IdCaptureModuleCommandFactory.create(module: self, method)
     }
 }
 
