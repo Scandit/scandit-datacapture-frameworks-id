@@ -18,14 +18,13 @@ struct IdCaptureSettingsDefaults: DefaultsEncodable {
         [
             "anonymizationMode": settings.anonymizationMode.jsonString,
             "rejectVoidedIds": settings.rejectVoidedIds,
-            "decodeBackOfEuropeanDrivingLicense": settings.decodeBackOfEuropeanDrivingLicense,
+            "decodeBackOfEuropeDrivingLicense": settings.decodeBackOfEuropeanDrivingLicense,
             "rejectExpiredIds": settings.rejectExpiredIds,
             "rejectIdsExpiringIn": settings.rejectIdsExpiringIn?.json,
             "rejectNotRealIdCompliant": settings.rejectNotRealIdCompliant,
             "rejectForgedAamvaBarcodes": settings.rejectForgedAamvaBarcodes,
             "rejectInconsistentData": settings.rejectInconsistentData,
             "rejectHolderBelowAge": settings.rejectHolderBelowAge,
-            "anonymizeDefaultFields": settings.anonymizeDefaultFields,
         ]
     }
 }
@@ -45,12 +44,13 @@ fileprivate extension IdAnonymizationMode {
     }
 }
 
+
 fileprivate extension Duration {
     var json: [String: Any] {
-        [
-            "years": self.years,
-            "months": self.months,
-            "days": self.days,
-        ]
+      return [
+        "years": self.years,
+        "months": self.months,
+        "days": self.days
+      ]
     }
 }

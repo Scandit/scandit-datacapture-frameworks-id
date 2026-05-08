@@ -35,8 +35,6 @@ extension RejectionReason {
             return "bluetoothCommunicationError"
         case .bluetoothUnavailable:
             return "bluetoothUnavailable"
-        case .cloudRequestFailed:
-            return "cloudRequestFailed"
         }
     }
 }
