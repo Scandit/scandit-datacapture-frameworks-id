@@ -18,14 +18,13 @@ struct IdCaptureSettingsDefaults: DefaultsEncodable {
         [
             "anonymizationMode": settings.anonymizationMode.jsonString,
             "rejectVoidedIds": settings.rejectVoidedIds,
-            "decodeBackOfEuropeanDrivingLicense": settings.decodeBackOfEuropeanDrivingLicense,
+            "decodeBackOfEuropeDrivingLicense": settings.decodeBackOfEuropeanDrivingLicense,
             "rejectExpiredIds": settings.rejectExpiredIds,
             "rejectIdsExpiringIn": settings.rejectIdsExpiringIn?.json,
             "rejectNotRealIdCompliant": settings.rejectNotRealIdCompliant,
             "rejectForgedAamvaBarcodes": settings.rejectForgedAamvaBarcodes,
             "rejectInconsistentData": settings.rejectInconsistentData,
             "rejectHolderBelowAge": settings.rejectHolderBelowAge,
-            "anonymizeDefaultFields": settings.anonymizeDefaultFields,
         ]
     }
 }
