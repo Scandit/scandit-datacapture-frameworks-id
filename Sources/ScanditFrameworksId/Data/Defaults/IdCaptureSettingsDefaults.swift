@@ -26,7 +26,6 @@ struct IdCaptureSettingsDefaults: DefaultsEncodable {
             "rejectInconsistentData": settings.rejectInconsistentData,
             "rejectHolderBelowAge": settings.rejectHolderBelowAge,
             "anonymizeDefaultFields": settings.anonymizeDefaultFields,
-            "rejectionTimeoutSeconds": settings.rejectionTimeoutSeconds,
         ]
     }
 }
