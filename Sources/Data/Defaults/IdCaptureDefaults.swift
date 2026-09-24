@@ -13,12 +13,10 @@ class IdCaptureDefaults: DefaultsEncodable {
     private let overlayDefaults: IdCaptureOverlayDefaults
     private let settingsDefaults: IdCaptureSettingsDefaults
 
-    init(
-        idCaptureFeedback: IdCaptureFeedback,
-        recommendedCameraSettings: CameraSettingsDefaults,
-        overlayDefaults: IdCaptureOverlayDefaults,
-        settingsDefaults: IdCaptureSettingsDefaults
-    ) {
+    init(idCaptureFeedback: IdCaptureFeedback,
+         recommendedCameraSettings: CameraSettingsDefaults,
+         overlayDefaults: IdCaptureOverlayDefaults,
+         settingsDefaults: IdCaptureSettingsDefaults) {
         self.recommendedCameraSettings = recommendedCameraSettings
         self.idCaptureFeedback = idCaptureFeedback
         self.overlayDefaults = overlayDefaults
@@ -30,16 +28,13 @@ class IdCaptureDefaults: DefaultsEncodable {
             "RecommendedCameraSettings": recommendedCameraSettings.toEncodable(),
             "IdCaptureFeedback": idCaptureFeedback.jsonString,
             "IdCaptureOverlay": overlayDefaults.toEncodable(),
-            "IdCaptureSettings": settingsDefaults.toEncodable(),
-            "defaultSuccessSound": IdCaptureFeedback.defaultSuccessSound.jsonString,
-            "defaultFailureSound": IdCaptureFeedback.defaultFailureSound.jsonString,
+            "IdCaptureSettings": settingsDefaults.toEncodable()
         ]
     }
 
     static var shared: IdCaptureDefaults = {
         IdCaptureDefaults(
-            idCaptureFeedback: .default,
-            recommendedCameraSettings:
+            idCaptureFeedback: .default, recommendedCameraSettings:
                 CameraSettingsDefaults(
                     cameraSettings: IdCapture.recommendedCameraSettings
                 ),
