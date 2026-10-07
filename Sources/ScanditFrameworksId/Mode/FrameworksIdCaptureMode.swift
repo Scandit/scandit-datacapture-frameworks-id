@@ -6,7 +6,6 @@
 
 import ScanditFrameworksCore
 import ScanditIdCapture
-import ScanditIdCaptureDeserializer
 
 public class FrameworksIdCaptureMode: FrameworksBaseMode {
     private let listener: FrameworksIdCaptureListener
