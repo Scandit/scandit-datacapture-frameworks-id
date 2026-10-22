@@ -7,44 +7,30 @@
 import ScanditFrameworksCore
 import ScanditIdCapture
 
-class IdCaptureDefaults: DefaultsEncodable {
+class IdCaptureDefaults {
     private let recommendedCameraSettings: CameraSettingsDefaults
-    private let idCaptureFeedback: IdCaptureFeedback
-    private let overlayDefaults: IdCaptureOverlayDefaults
-    private let settingsDefaults: IdCaptureSettingsDefaults
 
-    init(
-        idCaptureFeedback: IdCaptureFeedback,
-        recommendedCameraSettings: CameraSettingsDefaults,
-        overlayDefaults: IdCaptureOverlayDefaults,
-        settingsDefaults: IdCaptureSettingsDefaults
-    ) {
+    init(recommendedCameraSettings: CameraSettingsDefaults) {
         self.recommendedCameraSettings = recommendedCameraSettings
-        self.idCaptureFeedback = idCaptureFeedback
-        self.overlayDefaults = overlayDefaults
-        self.settingsDefaults = settingsDefaults
     }
 
-    func toEncodable() -> [String: Any?] {
-        [
-            "RecommendedCameraSettings": recommendedCameraSettings.toEncodable(),
-            "IdCaptureFeedback": idCaptureFeedback.jsonString,
-            "IdCaptureOverlay": overlayDefaults.toEncodable(),
-            "IdCaptureSettings": settingsDefaults.toEncodable(),
-            "defaultSuccessSound": IdCaptureFeedback.defaultSuccessSound.jsonString,
-            "defaultFailureSound": IdCaptureFeedback.defaultFailureSound.jsonString,
-        ]
+    /// The residual set of ID defaults that a framework plugin cannot resolve statically: only the
+    /// recommended camera settings, which the two platform wrappers derive differently. Every
+    /// other ID default ships as a generated static file.
+    func toDynamicEncodable() -> [String: Any?] {
+        [Keys.recommendedCameraSettings: recommendedCameraSettings.toEncodable()]
+    }
+
+    private enum Keys {
+        static let recommendedCameraSettings = "RecommendedCameraSettings"
     }
 
     static var shared: IdCaptureDefaults = {
         IdCaptureDefaults(
-            idCaptureFeedback: .default,
             recommendedCameraSettings:
                 CameraSettingsDefaults(
                     cameraSettings: IdCapture.recommendedCameraSettings
-                ),
-            overlayDefaults: .shared,
-            settingsDefaults: IdCaptureSettingsDefaults(settings: IdCaptureSettings())
+                )
         )
     }()
 }

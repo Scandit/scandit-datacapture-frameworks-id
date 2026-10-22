@@ -23,6 +23,7 @@ struct IdCaptureSettingsDefaults: DefaultsEncodable {
             "rejectIdsExpiringIn": settings.rejectIdsExpiringIn?.json,
             "rejectNotRealIdCompliant": settings.rejectNotRealIdCompliant,
             "rejectForgedAamvaBarcodes": settings.rejectForgedAamvaBarcodes,
+            "notifyOnSideCapture": settings.notifyOnSideCapture,
             "rejectInconsistentData": settings.rejectInconsistentData,
             "rejectHolderBelowAge": settings.rejectHolderBelowAge,
             "anonymizeDefaultFields": settings.anonymizeDefaultFields,

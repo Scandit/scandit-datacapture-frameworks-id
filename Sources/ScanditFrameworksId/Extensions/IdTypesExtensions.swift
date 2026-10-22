@@ -37,6 +37,8 @@ extension RejectionReason {
             return "bluetoothUnavailable"
         case .cloudRequestFailed:
             return "cloudRequestFailed"
+        case .manipulatedDocument:
+            return "manipulatedDocument"
         }
     }
 }
