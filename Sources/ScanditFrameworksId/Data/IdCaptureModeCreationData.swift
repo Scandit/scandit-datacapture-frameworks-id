@@ -10,6 +10,7 @@ import ScanditFrameworksCore
 public struct IdCaptureModeCreationData {
     let modeJson: String
     let modeId: Int
+    let hasListener: Bool
     let isEnabled: Bool
     let modeType: String
     let parentId: Int
@@ -17,12 +18,14 @@ public struct IdCaptureModeCreationData {
     private init(
         modeJson: String,
         modeId: Int,
+        hasListener: Bool,
         isEnabled: Bool,
         modeType: String,
         parentId: Int
     ) {
         self.modeJson = modeJson
         self.modeId = modeId
+        self.hasListener = hasListener
         self.isEnabled = isEnabled
         self.modeType = modeType
         self.parentId = parentId
@@ -37,12 +40,14 @@ public struct IdCaptureModeCreationData {
             return IdCaptureModeCreationData(
                 modeJson: modeJson,
                 modeId: -1,
+                hasListener: false,
                 isEnabled: false,
                 modeType: modeType,
                 parentId: -1
             )
         }
 
+        let hasListener = json.bool(forKey: "hasListeners", default: false)
         let isEnabled = json.bool(forKey: "enabled", default: false)
         let modeId = json.integer(forKey: "modeId", default: -1)
         let parentId = json.integer(forKey: "parentId", default: -1)
@@ -52,6 +57,7 @@ public struct IdCaptureModeCreationData {
         return IdCaptureModeCreationData(
             modeJson: modeJson,
             modeId: modeId,
+            hasListener: hasListener,
             isEnabled: isEnabled,
             modeType: modeType,
             parentId: parentId
