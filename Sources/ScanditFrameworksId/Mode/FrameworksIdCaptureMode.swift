@@ -56,11 +56,6 @@ public class FrameworksIdCaptureMode: FrameworksBaseMode {
 
         captureContext.addMode(mode: mode)
 
-        if creationData.hasListener {
-            mode.addListener(listener)
-            isListenerAdded = true
-        }
-
         mode.isEnabled = creationData.isEnabled
     }
 

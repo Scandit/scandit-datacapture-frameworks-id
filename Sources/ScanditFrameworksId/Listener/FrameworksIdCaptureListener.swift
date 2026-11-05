@@ -25,18 +25,18 @@ fileprivate extension Emitter {
 }
 
 fileprivate extension IdImages {
-    func toJson() -> [String: Any?] {
-        [
-            "front": [
-                "face": self.face?.toFileString(),
-                "frame": self.frame(for: .front)?.toFileString(),
-                "croppedDocument": self.croppedDocument(for: .front)?.toFileString(),
-            ],
-            "back": [
-                "croppedDocument": self.croppedDocument(for: .back)?.toFileString(),
-                "frame": self.frame(for: .back)?.toFileString(),
-            ],
-        ]
+    func toSchemaType() -> SchemaTypes.ImageInfo {
+        SchemaTypes.ImageInfo(
+            front: SchemaTypes.SideImages(
+                face: self.face?.toFileString(),
+                croppedDocument: self.croppedDocument(for: .front)?.toFileString(),
+                frame: self.frame(for: .front)?.toFileString()
+            ),
+            back: SchemaTypes.SideImages(
+                croppedDocument: self.croppedDocument(for: .back)?.toFileString(),
+                frame: self.frame(for: .back)?.toFileString()
+            )
+        )
     }
 }
 
@@ -71,21 +71,24 @@ open class FrameworksIdCaptureListener: NSObject, IdCaptureListener {
         guard emitter.hasModeSpecificListenersForEvent(modeId, for: FrameworksIdCaptureEvent.didCaptureId.rawValue)
         else { return }
 
-        var payload: [String: Any?]
+        let payload: SchemaTypes.IdCaptureListenerDidCaptureId
         if LastFrameData.shared.isFileSystemCacheEnabled {
-            payload = [
-                "id": capturedId.jsonStringWithoutImages,
-                "imageInfo": capturedId.images.toJson(),
-                "frontReviewImage": capturedId.verificationResult.dataConsistency?.frontReviewImage?.toFileString(),
-            ]
+            payload = SchemaTypes.IdCaptureListenerDidCaptureId(
+                id: capturedId.jsonStringWithoutImages,
+                imageInfo: capturedId.images.toSchemaType(),
+                frontReviewImage: capturedId.verificationResult.dataConsistency?.frontReviewImage?.toFileString(),
+                modeId: modeId,
+                event: FrameworksIdCaptureEvent.didCaptureId.rawValue
+            )
         } else {
-            payload = [
-                "id": capturedId.jsonString
-            ]
+            payload = SchemaTypes.IdCaptureListenerDidCaptureId(
+                id: capturedId.jsonString,
+                modeId: modeId,
+                event: FrameworksIdCaptureEvent.didCaptureId.rawValue
+            )
         }
-        payload["modeId"] = modeId
 
-        idCapturedEvent.emit(on: emitter, payload: payload)
+        idCapturedEvent.emit(on: emitter, payload: payload.toDictionary())
     }
 
     public func idCapture(
@@ -96,21 +99,26 @@ open class FrameworksIdCaptureListener: NSObject, IdCaptureListener {
         guard emitter.hasModeSpecificListenersForEvent(modeId, for: FrameworksIdCaptureEvent.didRejectId.rawValue)
         else { return }
 
-        var payload: [String: Any?] = [
-            "rejectionReason": rejectionReason.jsonString
-        ]
-
+        let payload: SchemaTypes.IdCaptureListenerDidRejectId
         if LastFrameData.shared.isFileSystemCacheEnabled {
-            payload["id"] = capturedId?.jsonStringWithoutImages
-            payload["imageInfo"] = capturedId?.images.toJson()
-            payload["frontReviewImage"] = capturedId?.verificationResult.dataConsistency?.frontReviewImage?
-                .toFileString()
+            payload = SchemaTypes.IdCaptureListenerDidRejectId(
+                rejectionReason: rejectionReason.jsonString,
+                id: capturedId?.jsonStringWithoutImages,
+                imageInfo: capturedId?.images.toSchemaType(),
+                frontReviewImage: capturedId?.verificationResult.dataConsistency?.frontReviewImage?.toFileString(),
+                modeId: modeId,
+                event: FrameworksIdCaptureEvent.didRejectId.rawValue
+            )
         } else {
-            payload["id"] = capturedId?.jsonString
+            payload = SchemaTypes.IdCaptureListenerDidRejectId(
+                rejectionReason: rejectionReason.jsonString,
+                id: capturedId?.jsonString,
+                modeId: modeId,
+                event: FrameworksIdCaptureEvent.didRejectId.rawValue
+            )
         }
-        payload["modeId"] = modeId
 
-        idRejectedEvent.emit(on: emitter, payload: payload)
+        idRejectedEvent.emit(on: emitter, payload: payload.toDictionary())
     }
 
     public func reset() {
