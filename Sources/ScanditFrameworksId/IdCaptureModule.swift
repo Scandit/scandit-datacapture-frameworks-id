@@ -30,29 +30,12 @@ open class IdCaptureModule: BasicFrameworkModule<FrameworksIdCaptureMode> {
         super.init()
     }
 
-    private lazy var listenerAttachments: [ListenerAttachment] = [
-        ModuleListenerAttachment.forMode(
-            [
-                "IdCaptureListener.didCaptureId",
-                "IdCaptureListener.didRejectId",
-            ],
-            attach: { [weak self] in
-                self?.addIdCaptureListener(modeId: $0, result: NoopFrameworksResult())
-            },
-            detach: { [weak self] in
-                self?.removeIdCaptureListener(modeId: $0, result: NoopFrameworksResult())
-            }
-        )
-    ]
-
     public override func didStart() {
         super.didStart()
-        listenerAttachments.forEach { ListenerRegistry.shared.register(attachment: $0) }
         DeserializationLifeCycleDispatcher.shared.attach(observer: self)
     }
 
     public override func didStop() {
-        listenerAttachments.forEach { ListenerRegistry.shared.unregister(attachment: $0) }
         for mode in getAllModesInCache() {
             mode.dispose()
         }
@@ -62,30 +45,16 @@ open class IdCaptureModule: BasicFrameworkModule<FrameworksIdCaptureMode> {
         super.didStop()
     }
 
-    /// Only the defaults that cannot be resolved statically by a framework plugin.
-    public func getDynamicDefaults() -> [String: Any?] {
-        IdCaptureDefaults.shared.toDynamicEncodable()
+    public override func getDefaults() -> [String: Any?] {
+        IdCaptureDefaults.shared.toEncodable()
     }
 
     public func addIdCaptureListener(modeId: Int, result: FrameworksResult) {
-        guard let mode = getModeFromCache(modeId) else {
-            addPostModeCreationAction(
-                modeId,
-                action: {
-                    self.addIdCaptureListener(modeId: modeId, result: result)
-                }
-            )
-            return
-        }
-        mode.addListener()
-        rememberListenerRegistration(modeId: modeId) { [weak self] in
-            self?.addIdCaptureListener(modeId: modeId, result: NoopFrameworksResult())
-        }
+        getModeFromCache(modeId)?.addListener()
         result.successAndKeepCallback(result: nil)
     }
 
     public func removeIdCaptureListener(modeId: Int, result: FrameworksResult) {
-        forgetListenerRegistration(modeId: modeId)
         getModeFromCache(modeId)?.removeListener()
         result.success()
     }
