@@ -20,6 +20,7 @@ public class IdCaptureModuleCommandFactory {
     /// - Parameter method: The method call containing method name and arguments
     /// - Returns: The corresponding command, or nil if method is not recognized
     public static func create(module: IdCaptureModule, _ method: FrameworksMethodCall) -> IdCaptureModuleCommand? {
+        _ = LogMetadata.registered
         switch method.method {
         case "resetIdCaptureMode":
             return ResetIdCaptureModeCommand(module: module, method)
